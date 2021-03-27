@@ -1,5 +1,5 @@
 // Author: Timo Wiren
-// Modified: 2021-03-25
+// Modified: 2021-03-27
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -136,10 +136,10 @@ int main()
         Matrix44 rotation;
         makeRotationXYZ( angleDeg, angleDeg, angleDeg, &rotation );
 
-        multiply( &rotation, &meshLocalToWorld, &meshLocalToWorld );
+        multiplySSE( &rotation, &meshLocalToWorld, &meshLocalToWorld );
 
         Matrix44 localToClip;
-        multiply( &meshLocalToWorld, &projMat, &localToClip );
+        multiplySSE( &meshLocalToWorld, &projMat, &localToClip );
 
         Matrix44 meshLocalToWorld2;
         makeIdentity( &meshLocalToWorld2 );
@@ -147,7 +147,7 @@ int main()
         meshLocalToWorld2.m[ 13 ] = 0;
         meshLocalToWorld2.m[ 14 ] = -5;
 
-        multiply( &rotation, &meshLocalToWorld2, &meshLocalToWorld2 );
+        multiplySSE( &rotation, &meshLocalToWorld2, &meshLocalToWorld2 );
 
         Matrix44 localToClip2;
         multiply( &meshLocalToWorld2, &projMat, &localToClip2 );

@@ -109,13 +109,19 @@ void transformPoint( const Vec3* point, const Matrix44* mat, Vec3* out )
     out->z = tmp.z;    
 }
 
-/*
-void Multiply( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
+void multiplySSE( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
 {
     alignas( 16 ) float result[ 16 ];
-    // NOTE: Can't assign like this, copy contents instead!
-    Matrix44 matA = ma;
-    Matrix44 matB = mb;
+    Matrix44 matA;
+    for (int i = 0; i < 16; ++i)
+    {
+        matA.m[ i ] = ma->m[ i ];
+    }
+    Matrix44 matB;
+    for (int i = 0; i < 16; ++i)
+    {
+        matB.m[ i ] = mb->m[ i ];
+    }
 
     const float* a = matA.m;
     const float* b = matB.m;
@@ -135,12 +141,15 @@ void Multiply( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
             r_line = _mm_add_ps(_mm_mul_ps( a_line, b_line ), r_line);
         }
 
-        _mm_store_ps( &result.m[ i ], r_line );
+        _mm_store_ps( &result[ i ], r_line );
     }
 
-    out = result;
+    for (int i = 0; i < 16; ++i)
+    {
+        out->m[ i ] = result[ i ];
+    }
 }
-*/
+
 /*
 void Matrix44::TransformPoint( const Vec4& vec, const Matrix44& mat, Vec4* out )
 {

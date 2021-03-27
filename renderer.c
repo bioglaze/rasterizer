@@ -29,6 +29,7 @@ typedef struct
 float edgeFunction( float ax, float ay, float bx, float by, float cx, float cy )
 {
     return (cx - ax) * (by - ay) - (cy - ay) * (bx - ax);
+    //return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
 }
 
 // Vertices must be in CCW order! texture must be a 64x64 4-channel 32-bit format.
@@ -149,43 +150,41 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
     miny = fmax( miny, 0 );
     maxx = fmin( maxx, WIDTH - 1 );
     maxy = fmin( maxy, HEIGHT - 1 );
+
+    float a01 = y1 - y2, b01 = x2 - x1;
+    float a12 = y2 - y3, b12 = x3 - x2;
+    float a20 = y3 - y1, b20 = x1 - x3;
+
+    float area = edgeFunction( x1, y1, x2, y2, x3, y3 );
+
+    float w0row = edgeFunction( x2, y2, x3, y3, minx, miny );
+    float w1row = edgeFunction( x3, y3, x1, y1, minx, miny );
+    float w2row = edgeFunction( x1, y1, x2, y2, minx, miny );
     
     Uint32* target = (Uint32*)((Uint8*)outBuffer + miny * rowPitch);
     float* targetZ = (float*)((Uint8*)zBuffer + miny * rowPitch);
 
-    float invArea = 1.0f / edgeFunction( x1, y1, x2, y2, x3, y3 );
-
     for (int y = miny; y <= maxy; ++y)
     {
+        float w0 = w0row;
+        float w1 = w1row;
+        float w2 = w2row;
+        
         for (int x = minx; x <= maxx; ++x)
         {
-            if ((x1 - x2) * (y - y1) - (y1 - y2) * (x - x1) > 0 &&
+            /*if ((x1 - x2) * (y - y1) - (y1 - y2) * (x - x1) > 0 &&
                 (x2 - x3) * (y - y2) - (y2 - y3) * (x - x2) > 0 &&
-                (x3 - x1) * (y - y3) - (y3 - y1) * (x - x3) > 0)
+                (x3 - x1) * (y - y3) - (y3 - y1) * (x - x3) > 0)*/
             {
-                float w0 = edgeFunction( x2, y2, x3, y3, x, y );
-                float w1 = edgeFunction( x3, y3, x1, y1, x, y );
-                float w2 = edgeFunction( x1, y1, x2, y2, x, y );
-
-                if (w0 < 0 || w1 < 0 || w2 < 0)
-                {
-                    //printf( "skip\n" );
-                    continue;
-                }
-
-                w0 *= invArea;
-                w1 *= invArea;
-                w2 *= invArea;
-
                 float s = w0 * s1 + w1 * s2 + w2 * s3;
                 float t = w0 * t1 + w1 * t2 + w2 * t3;
 
-                float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
+                w0 = edgeFunction( x2, y2, x3, y3, x, y );
+                w1 = edgeFunction( x3, y3, x1, y1, x, y );
+                w2 = edgeFunction( x1, y1, x2, y2, x, y );
 
-                if (z < targetZ[ x ] )
-                {
-                    continue;
-                }
+                //printf("w0: %f, area: %f\n", w0, area );
+                float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
 
                 targetZ[ x ] = z;
                 
@@ -195,8 +194,19 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
                 int ix = s * 63.0f + 0.5f;
                 int iy = t * 63.0f + 0.5f;
 
-                target[ x ] = texture[ (int)( iy * 64.0f + ix ) ];
+                if (/*z < targetZ[ x ] ||*/ w0/area >= 0 && w1 >= 0 && w2 >= 0)
+                {
+                    target[ x ] = 255;//texture[ (int)( iy * 64.0f + ix ) ];
+                }
+                
+                w0 += a12;
+                //w1 += a20;
+                //w2 += a01;                 
             }
+
+            w0row += b12;
+            w1row += b20;
+            w2row += b01;
         }
 
         target += WIDTH;
