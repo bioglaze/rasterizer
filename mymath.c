@@ -10,6 +10,11 @@ typedef struct
     float x, y, z;
 } Vec3;
 
+typedef struct
+{
+    float x, y, z, w;
+} Vec4;
+
 int mini( int i1, int i2 )
 {
     return i1 < i2 ? i1 : i2;
@@ -150,12 +155,13 @@ void multiplySSE( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
     }
 }
 
-/*
-void Matrix44::TransformPoint( const Vec4& vec, const Matrix44& mat, Vec4* out )
+
+/*void transformPointSSE( Vec3* vec, Matrix44* mat, Vec3* out )
 {
-    Matrix44 transpose;
-    mat.Transpose( transpose );
-    alignas( 16 ) Vec4 v4 = vec;
+    alignas( 16 ) Matrix44 transpose;
+    makeIdentity( &transpose );
+    //mat.Transpose( transpose );
+    alignas( 16 ) Vec4 v4 = { vec->x, vec->y, vec->z, 1 };
 
     __m128 vec4 = _mm_load_ps( &v4.x );
     __m128 row1 = _mm_load_ps( &transpose.m[  0 ] );
@@ -171,9 +177,11 @@ void Matrix44::TransformPoint( const Vec4& vec, const Matrix44& mat, Vec4* out )
     __m128 sum_01 = _mm_hadd_ps( r1, r2 );
     __m128 sum_23 = _mm_hadd_ps( r3, r4 );
     __m128 result = _mm_hadd_ps( sum_01, sum_23 );
-    _mm_store_ps( &out->x, result );
-}
-*/
+    _mm_store_ps( &v4.x, result );
+    out->x = v4.x;
+    out->y = v4.y;
+    out->z = v4.z;
+    }*/
 
 Vec3 localToRaster( const Vec3* v, const Matrix44* localToClip )
 {
@@ -234,4 +242,9 @@ float sRGBToLinear( float s )
     }
 
     return 0;
+}
+
+bool isBackface( float x1, float y1, float x2, float y2, float x3, float y3 )
+{
+    return ((x3 - x1) * (y3 - y2) - (x3 - x2)*(y3 - y1)) < 0;
 }

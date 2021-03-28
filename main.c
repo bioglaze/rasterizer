@@ -1,5 +1,5 @@
 // Author: Timo Wiren
-// Modified: 2021-03-27
+// Modified: 2021-03-28
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -30,6 +30,7 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, flo
 {
     clock_t clo;
     double accumTriangleTime = 0;
+    int renderedTriangleCount = 0;
     
     for (unsigned f = 0; f < mesh->faceCount; ++f)
     {
@@ -59,12 +60,18 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, flo
         cv2.v = mesh->uvs[ mesh->faces[ f ].c ].v;
 
         clo = clock();
-        drawTriangle( &cv0, &cv1, &cv2, pitch, texture, zBuffer, outBuffer );
+        
+        if (!isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
+        {
+            drawTriangle2( &cv0, &cv1, &cv2, pitch, texture, zBuffer, outBuffer );
+            ++renderedTriangleCount;
+        }
+        
         clo = clock() - clo;
         accumTriangleTime += ((double)clo) / CLOCKS_PER_SEC;
     }
 
-    printf( "One mesh's triangle rendering time: %f seconds\n", accumTriangleTime );
+    printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
 }
 
 int main()
@@ -131,7 +138,7 @@ int main()
         makeIdentity( &meshLocalToWorld );
         meshLocalToWorld.m[ 12 ] = -2;
         meshLocalToWorld.m[ 13 ] = 0;
-        meshLocalToWorld.m[ 14 ] = -5;
+        meshLocalToWorld.m[ 14 ] = 5;
 
         Matrix44 rotation;
         makeRotationXYZ( angleDeg, angleDeg, angleDeg, &rotation );
@@ -145,7 +152,7 @@ int main()
         makeIdentity( &meshLocalToWorld2 );
         meshLocalToWorld2.m[ 12 ] = 2;
         meshLocalToWorld2.m[ 13 ] = 0;
-        meshLocalToWorld2.m[ 14 ] = -5;
+        meshLocalToWorld2.m[ 14 ] = 5;
 
         multiplySSE( &rotation, &meshLocalToWorld2, &meshLocalToWorld2 );
 
