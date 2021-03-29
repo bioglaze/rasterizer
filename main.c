@@ -26,54 +26,6 @@ const unsigned HEIGHT = 1080 / 2;
 #include "loadobj.c"
 #include "loadbmp.c"
 
-void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, float* zBuffer, int* outBuffer )
-{
-    clock_t clo;
-    double accumTriangleTime = 0;
-    int renderedTriangleCount = 0;
-    
-    for (unsigned f = 0; f < mesh->faceCount; ++f)
-    {
-        Vertex cv0;
-        Vertex cv1;
-        Vertex cv2;
-
-        Vec3 v = localToRaster( &mesh->positions[ mesh->faces[ f ].a ], localToClip );
-        cv0.x = v.x;
-        cv0.y = v.y;
-        cv0.z = v.z;
-        cv0.u = mesh->uvs[ mesh->faces[ f ].a ].u;
-        cv0.v = mesh->uvs[ mesh->faces[ f ].a ].v;
-
-        v = localToRaster( &mesh->positions[ mesh->faces[ f ].b ], localToClip );
-        cv1.x = v.x;
-        cv1.y = v.y;
-        cv1.z = v.z;
-        cv1.u = mesh->uvs[ mesh->faces[ f ].b ].u;
-        cv1.v = mesh->uvs[ mesh->faces[ f ].b ].v;
-
-        v = localToRaster( &mesh->positions[ mesh->faces[ f ].c ], localToClip );
-        cv2.x = v.x;
-        cv2.y = v.y;
-        cv2.z = v.z;
-        cv2.u = mesh->uvs[ mesh->faces[ f ].c ].u;
-        cv2.v = mesh->uvs[ mesh->faces[ f ].c ].v;
-
-        clo = clock();
-        
-        if (!isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
-        {
-            drawTriangle2( &cv0, &cv1, &cv2, pitch, texture, zBuffer, outBuffer );
-            ++renderedTriangleCount;
-        }
-        
-        clo = clock() - clo;
-        accumTriangleTime += ((double)clo) / CLOCKS_PER_SEC;
-    }
-
-    printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
-}
-
 int main()
 {
     int texWidth = 0;
@@ -157,7 +109,7 @@ int main()
         multiplySSE( &rotation, &meshLocalToWorld2, &meshLocalToWorld2 );
 
         Matrix44 localToClip2;
-        multiply( &meshLocalToWorld2, &projMat, &localToClip2 );
+        multiplySSE( &meshLocalToWorld2, &projMat, &localToClip2 );
 
         angleDeg += 0.5f;
 

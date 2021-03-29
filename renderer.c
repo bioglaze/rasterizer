@@ -174,20 +174,20 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
         
         for (int x = minx; x <= maxx; ++x)
         {
-            float s = w0 * s1 + w1 * s2 + w2 * s3;
-            float t = w0 * t1 + w1 * t2 + w2 * t3;
-
             float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
-                
-            s *= z;
-            t *= z;
-                
-            int ix = s * 63.0f + 0.5f;
-            int iy = t * 63.0f + 0.5f;
-            
+                            
             if (z < targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
                 targetZ[ x ] = z;
+
+                float s = w0 * s1 + w1 * s2 + w2 * s3;
+                float t = w0 * t1 + w1 * t2 + w2 * t3;
+                s *= z;
+                t *= z;
+                
+                int ix = s * 63.0f + 0.5f;
+                int iy = t * 63.0f + 0.5f;
+
                 target[ x ] = texture[ (int)( iy * 64.0f + ix ) ];
             }
                 
@@ -203,4 +203,52 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
         target += WIDTH;
         targetZ += WIDTH;
     }
+}
+
+void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, float* zBuffer, int* outBuffer )
+{
+    double accumTriangleTime = 0;
+    int renderedTriangleCount = 0;
+    clock_t clo;
+    
+    for (unsigned f = 0; f < mesh->faceCount; ++f)
+    {
+        Vertex cv0;
+        Vertex cv1;
+        Vertex cv2;
+
+        Vec3 v = localToRaster( mesh->positions[ mesh->faces[ f ].a ], localToClip );
+        cv0.x = v.x;
+        cv0.y = v.y;
+        cv0.z = v.z;
+        cv0.u = mesh->uvs[ mesh->faces[ f ].a ].u;
+        cv0.v = mesh->uvs[ mesh->faces[ f ].a ].v;
+
+        v = localToRaster( mesh->positions[ mesh->faces[ f ].b ], localToClip );
+        cv1.x = v.x;
+        cv1.y = v.y;
+        cv1.z = v.z;
+        cv1.u = mesh->uvs[ mesh->faces[ f ].b ].u;
+        cv1.v = mesh->uvs[ mesh->faces[ f ].b ].v;
+
+        v = localToRaster( mesh->positions[ mesh->faces[ f ].c ], localToClip );
+        cv2.x = v.x;
+        cv2.y = v.y;
+        cv2.z = v.z;
+        cv2.u = mesh->uvs[ mesh->faces[ f ].c ].u;
+        cv2.v = mesh->uvs[ mesh->faces[ f ].c ].v;
+
+        clo = clock();
+        
+        if (!isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
+        {
+            drawTriangle2( &cv0, &cv1, &cv2, pitch, texture, zBuffer, outBuffer );
+            ++renderedTriangleCount;
+        }
+        
+        clo = clock() - clo;
+        accumTriangleTime += ((double)clo) / CLOCKS_PER_SEC;
+    }
+
+    printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
 }

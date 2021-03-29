@@ -102,12 +102,12 @@ void multiply( const Matrix44* a, const Matrix44* b, Matrix44* result )
     }
 }
 
-void transformPoint( const Vec3* point, const Matrix44* mat, Vec3* out )
+void transformPoint( Vec3 point, const Matrix44* mat, Vec3* out )
 {
     Vec3 tmp;
-    tmp.x = mat->m[ 0 ] * point->x + mat->m[ 4 ] * point->y + mat->m[ 8 ] * point->z + mat->m[ 12 ];
-    tmp.y = mat->m[ 1 ] * point->x + mat->m[ 5 ] * point->y + mat->m[ 9 ] * point->z + mat->m[ 13 ];
-    tmp.z = mat->m[ 2 ] * point->x + mat->m[ 6 ] * point->y + mat->m[ 10 ] * point->z + mat->m[ 14 ];
+    tmp.x = mat->m[ 0 ] * point.x + mat->m[ 4 ] * point.y + mat->m[ 8 ] * point.z + mat->m[ 12 ];
+    tmp.y = mat->m[ 1 ] * point.x + mat->m[ 5 ] * point.y + mat->m[ 9 ] * point.z + mat->m[ 13 ];
+    tmp.z = mat->m[ 2 ] * point.x + mat->m[ 6 ] * point.y + mat->m[ 10 ] * point.z + mat->m[ 14 ];
 
     out->x = tmp.x;
     out->y = tmp.y;
@@ -183,7 +183,7 @@ void multiplySSE( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
     out->z = v4.z;
     }*/
 
-Vec3 localToRaster( const Vec3* v, const Matrix44* localToClip )
+Vec3 localToRaster( Vec3 v, const Matrix44* localToClip )
 {
     Vec3 vertexNDC;
     transformPoint( v, localToClip, &vertexNDC );
