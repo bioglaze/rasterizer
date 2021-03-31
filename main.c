@@ -1,5 +1,5 @@
 // Author: Timo Wiren
-// Modified: 2021-03-28
+// Modified: 2021-03-30
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -26,7 +26,7 @@ const unsigned HEIGHT = 1080 / 2;
 #include "loadobj.c"
 #include "loadbmp.c"
 
-int main()
+int main( int argc, char** argv )
 {
     int texWidth = 0;
     int texHeight = 0;
@@ -53,13 +53,13 @@ int main()
 
     Matrix44 projMat;
     makeProjection( 45.0f, WIDTH / (float)HEIGHT, 0.1f, 100.0f, &projMat );
-    
+
     float angleDeg = 0;
-    
+
     while (1)
     {
         SDL_Event e;
-        
+
         while (SDL_PollEvent( &e ))
         {
             if (e.type == SDL_QUIT)
@@ -85,7 +85,7 @@ int main()
 
         memset( pixels, 0, WIDTH * HEIGHT * 4 );
         memset( zBuf, 0, WIDTH * HEIGHT * 4 );
-        
+
         Matrix44 meshLocalToWorld;
         makeIdentity( &meshLocalToWorld );
         meshLocalToWorld.m[ 12 ] = -2;
