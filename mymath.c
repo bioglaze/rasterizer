@@ -15,6 +15,73 @@ typedef struct
     float x, y, z, w;
 } Vec4;
 
+float dot( Vec3 a, Vec3 b )
+{
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+Vec3 cross( Vec3 v1, Vec3 v2 )
+{
+    return (Vec3){ v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x };
+}
+
+void normalize( Vec3* v )
+{
+    const float invLen = 1.0f / sqrtf( v->x * v->x + v->y * v->y + v->z * v->z );
+    v->x *= invLen;
+    v->y *= invLen;
+    v->z *= invLen;
+}
+
+Vec3 sub( Vec3 a, Vec3 b )
+{
+    return (Vec3){ a.x - b.x, a.y - b.y, a.z - b.z };
+}
+
+typedef struct Plane
+{
+    Vec3 a;
+    Vec3 b;
+    Vec3 c;
+    Vec3 normal; // Plane's normal pointing inside the frustum.
+    float d;
+} Plane;
+
+typedef struct Frustum
+{
+    // Near clipping plane coordinates
+    Vec3 nearTopLeft;
+    Vec3 nearTopRight;
+    Vec3 nearBottomLeft;
+    Vec3 nearBottomRight;
+
+    // Far clipping plane coordinates.
+    Vec3 farTopLeft;
+    Vec3 farTopRight;
+    Vec3 farBottomLeft;
+    Vec3 farBottomRight;
+
+    Vec3 nearCenter; // Near clipping plane center coordinate.
+    Vec3 farCenter;  // Far clipping plane center coordinate.
+    float zNear, zFar;
+    float nearWidth, nearHeight;
+    float farWidth, farHeight;
+
+    Plane planes[ 6 ];
+} Frustum;
+
+float planeDistance( Plane* plane, Vec3 point )
+{
+    return dot( plane->normal, point ) + plane->d;
+}
+
+void planeSetNormalAndPoint( Plane* plane, Vec3 normal, Vec3 point )
+{
+    plane->normal = normal;
+    normalize( &plane->normal );
+    plane->d = -dot( plane->normal, point );
+}
+
 int mini( int i1, int i2 )
 {
     return i1 < i2 ? i1 : i2;
@@ -84,7 +151,7 @@ void makeRotationXYZ( float xDeg, float yDeg, float zDeg, Matrix44* outMat )
 void multiply( const Matrix44* a, const Matrix44* b, Matrix44* result )
 {
     Matrix44 tmp;
-    
+
     for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
@@ -111,7 +178,7 @@ void transformPoint( Vec3 point, const Matrix44* mat, Vec3* out )
 
     out->x = tmp.x;
     out->y = tmp.y;
-    out->z = tmp.z;    
+    out->z = tmp.z;
 }
 
 void multiplySSE( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
@@ -192,7 +259,7 @@ Vec3 localToRaster( Vec3 v, const Matrix44* localToClip )
     output.x = WIDTH * 0.5f + vertexNDC.x * WIDTH  * 0.5f / vertexNDC.z;
     output.y = HEIGHT * 0.5f + vertexNDC.y * HEIGHT * 0.5f / vertexNDC.z;
     output.z = vertexNDC.z;
-    
+
     return output;
 }
 
@@ -248,3 +315,56 @@ bool isBackface( float x1, float y1, float x2, float y2, float x3, float y3 )
 {
     return ((x3 - x1) * (y3 - y2) - (x3 - x2)*(y3 - y1)) < 0;
 }
+
+void calculateNormal( Plane* plane )
+{
+    const Vec3 v1 = sub( plane->a, plane->b );
+    const Vec3 v2 = sub( plane->c, plane->b );
+    plane->normal = cross( v2, v1 );
+    normalize( &plane->normal );
+    plane->d = -( dot( plane->normal, plane->b ) );
+}
+
+void frustumSetProjection( Frustum* frustum, float fieldOfView, float aAspect, float aNear, float aFar )
+{
+
+}
+
+void updateFrustum( Frustum* frustum, Vec3 cameraPosition, Vec3 cameraDirection )
+{
+
+}
+
+bool BoxInFrustum( Frustum* frustum, Vec3 vMin, Vec3 vMax )
+{
+    bool result = true;
+
+    Vec3 pos;
+
+    // Determines positive and negative vertex in relation to the normal.
+    for (unsigned p = 0; p < 6; ++p)
+    {
+        pos = vMin;
+
+        if (frustum->planes[ p ].normal.x >= 0)
+        {
+            pos.x = vMax.x;
+        }
+        if (frustum->planes[ p ].normal.y >= 0)
+        {
+            pos.y = vMax.y;
+        }
+        if (frustum->planes[ p ].normal.z >= 0)
+        {
+            pos.z = vMax.z;
+        }
+
+        if (planeDistance( &frustum->planes[ p ], pos ) < 0)
+        {
+            return false;
+        }
+    }
+
+    return result;
+}
+
