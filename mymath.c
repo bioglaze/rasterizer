@@ -33,9 +33,34 @@ void normalize( Vec3* v )
     v->z *= invLen;
 }
 
+Vec3 normalized( Vec3 v )
+{
+    const float invLen = 1.0f / sqrtf( v.x * v.x + v.y * v.y + v.z * v.z );
+    v.x *= invLen;
+    v.y *= invLen;
+    v.z *= invLen;
+
+    return v;
+}
+
+Vec3 neg( Vec3 v )
+{
+    return (Vec3){ -v.x, -v.y, -v.z };
+}
+
 Vec3 sub( Vec3 a, Vec3 b )
 {
     return (Vec3){ a.x - b.x, a.y - b.y, a.z - b.z };
+}
+
+Vec3 add( Vec3 a, Vec3 b )
+{
+    return (Vec3){ a.x + b.x, a.y + b.y, a.z + b.z };
+}
+
+Vec3 mulf( Vec3 v, float f )
+{
+    return (Vec3){ v.x * f, v.y * f, v.z * f };
 }
 
 typedef struct Plane
@@ -118,6 +143,18 @@ void makeIdentity( Matrix44* mat )
     }
 
     mat->m[ 0 ] = mat->m[ 5 ] = mat->m[ 10 ] = mat->m[ 15 ] = 1;
+}
+
+void makeLookat( Vec3 eye, Vec3 center, Matrix44* mat )
+{
+    const Vec3 zAxis = normalized( sub( center, eye) );
+    const Vec3 xAxis = normalized( cross( (Vec3){ 0, 1, 0 }, zAxis ) );
+    const Vec3 yAxis = normalized( cross( zAxis, xAxis ) );
+
+    mat->m[ 0 ] = xAxis.x; mat->m[ 1 ] = xAxis.y; mat->m[ 2 ] = xAxis.z; mat->m[ 3 ] = -dot( xAxis, eye );
+    mat->m[ 4 ] = yAxis.x; mat->m[ 5 ] = yAxis.y; mat->m[ 6 ] = yAxis.z; mat->m[ 7 ] = -dot( yAxis, eye );
+    mat->m[ 8 ] = zAxis.x; mat->m[ 9 ] = zAxis.y; mat->m[ 10 ] = zAxis.z; mat->m[ 11 ] = -dot( zAxis, eye );
+    mat->m[ 12 ] = 0; mat->m[ 13 ] = 0; mat->m[ 14 ] = 0; mat->m[ 15 ] = 1;
 }
 
 void makeRotationXYZ( float xDeg, float yDeg, float zDeg, Matrix44* outMat )
@@ -325,17 +362,85 @@ void calculateNormal( Plane* plane )
     plane->d = -( dot( plane->normal, plane->b ) );
 }
 
-void frustumSetProjection( Frustum* frustum, float fieldOfView, float aAspect, float aNear, float aFar )
+void frustumSetProjection( Frustum* frustum, float fovDegrees, float aAspect, float aNear, float aFar )
 {
+    frustum->zNear = aNear;
+    frustum->zFar  = aFar;
 
+    // Computes width and height of the near and far plane sections.
+    const float deg2rad = 3.14159265358979f / 180.0f;
+    const float tang = tanf( deg2rad * fovDegrees * 0.5f );
+    frustum->nearHeight = aNear * tang;
+    frustum->nearWidth  = frustum->nearHeight * aAspect;
+    frustum->farHeight  = frustum->zFar * tang;
+    frustum->farWidth   = frustum->farHeight * aAspect;
+}
+
+void updateCornersAndCenters( Frustum* frustum, Vec3 cameraPosition, Vec3 zAxis )
+{
+    const Vec3 up = { 0, 1, 0 };
+    Vec3 xAxis = cross( up, zAxis );
+    normalize( &xAxis );
+    Vec3 yAxis = cross( zAxis, xAxis );
+    normalize( &yAxis );
+
+    // Computes the centers of near and far planes.
+    frustum->nearCenter = sub( cameraPosition, mulf( zAxis, frustum->zNear ) );
+    frustum->farCenter  = sub( cameraPosition, mulf( zAxis, frustum->zFar ) );
+
+    // Computes the near plane corners.
+    frustum->nearTopLeft     = sub( add( frustum->nearCenter, mulf( yAxis, frustum->nearHeight ) ), mulf( xAxis, frustum->nearWidth ) );
+    frustum->nearTopRight    = add( add( frustum->nearCenter, mulf( yAxis, frustum->nearHeight ) ), mulf( xAxis, frustum->nearWidth ) );
+    frustum->nearBottomLeft  = sub( sub( frustum->nearCenter, mulf( yAxis, frustum->nearHeight ) ), mulf( xAxis, frustum->nearWidth ) );
+    frustum->nearBottomRight = add( sub( frustum->nearCenter, mulf( yAxis, frustum->nearHeight ) ), mulf( xAxis, frustum->nearWidth ) );
+
+    // Computes the far plane corners.
+    frustum->farTopLeft     = sub( add( frustum->farCenter, mulf( yAxis, frustum->farHeight ) ), mulf( xAxis, frustum->farWidth ) );
+    frustum->farTopRight    = add( add( frustum->farCenter, mulf( yAxis, frustum->farHeight ) ), mulf( xAxis, frustum->farWidth ) );
+    frustum->farBottomLeft  = sub( sub( frustum->farCenter, mulf( yAxis, frustum->farHeight ) ), mulf( xAxis, frustum->farWidth ) );
+    frustum->farBottomRight = add( sub( frustum->farCenter, mulf( yAxis, frustum->farHeight ) ), mulf( xAxis, frustum->farWidth ) );
 }
 
 void updateFrustum( Frustum* frustum, Vec3 cameraPosition, Vec3 cameraDirection )
 {
+    const Vec3 zAxis = cameraDirection;
+    updateCornersAndCenters( frustum, cameraPosition, zAxis );
 
+    enum FrustumPlane
+    {
+        Far = 0,
+        Near,
+        Bottom,
+        Top,
+        Left,
+        Right
+    };
+
+    frustum->planes[ Top ].a = frustum->nearTopRight;
+    frustum->planes[ Top ].b = frustum->nearTopLeft;
+    frustum->planes[ Top ].c = frustum->farTopLeft;
+    calculateNormal( &frustum->planes[ Top ] );
+
+    frustum->planes[ Bottom ].a = frustum->nearBottomLeft;
+    frustum->planes[ Bottom ].b = frustum->nearBottomRight;
+    frustum->planes[ Bottom ].c = frustum->farBottomRight;
+    calculateNormal( &frustum->planes[ Bottom ] );
+
+    frustum->planes[ Left ].a = frustum->nearTopLeft;
+    frustum->planes[ Left ].b = frustum->nearBottomLeft;
+    frustum->planes[ Left ].c = frustum->farBottomLeft;
+    calculateNormal( &frustum->planes[ Left ] );
+
+    frustum->planes[ Right ].a = frustum->nearBottomRight;
+    frustum->planes[ Right ].b = frustum->nearTopRight;
+    frustum->planes[ Right ].c = frustum->farBottomRight;
+    calculateNormal( &frustum->planes[ Right ] );
+
+    planeSetNormalAndPoint( &frustum->planes[ Near ], neg( zAxis ), frustum->nearCenter );
+    planeSetNormalAndPoint( &frustum->planes[ Far  ],  zAxis, frustum->farCenter  );
 }
 
-bool BoxInFrustum( Frustum* frustum, Vec3 vMin, Vec3 vMax )
+bool boxInFrustum( Frustum* frustum, Vec3 vMin, Vec3 vMax )
 {
     bool result = true;
 

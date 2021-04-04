@@ -37,6 +37,7 @@ float orient2D( float ax, float ay, float bx, float by, float cx, float cy )
 }
 
 // Vertices must be in CCW order! texture must be a 64x64 4-channel 32-bit format.
+// Reference implementation, not optimized. Optimized version is below in drawTriangle2().
 void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, float* zBuffer, int* outBuffer )
 {
     float x1 = v1->x;
@@ -56,7 +57,7 @@ void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textur
     float z1 = 1.0f / v1->z;
     float z2 = 1.0f / v2->z;
     float z3 = 1.0f / v3->z;
-    
+
     int minx = fmin( x1, fmin( x2, x3 ) );
     int miny = fmin( y1, fmin( y2, y3 ) );
     int maxx = fmax( x1, fmax( x2, x3 ) );
@@ -67,7 +68,7 @@ void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textur
     miny = fmax( miny, 0 );
     maxx = fmin( maxx, WIDTH - 1 );
     maxy = fmin( maxy, HEIGHT - 1 );
-    
+
     Uint32* target = (Uint32*)((Uint8*)outBuffer + miny * rowPitch);
     float* targetZ = (float*)((Uint8*)zBuffer + miny * rowPitch);
 
@@ -106,10 +107,10 @@ void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textur
                 }
 
                 targetZ[ x ] = z;
-                
+
                 s *= z;
                 t *= z;
-                
+
                 int ix = s * 63.0f + 0.5f;
                 int iy = t * 63.0f + 0.5f;
 
@@ -143,9 +144,9 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
     float z1 = 1.0f / v1->z;
     float z2 = 1.0f / v2->z;
     float z3 = 1.0f / v3->z;
-    
-    int minx = fmin( x1, fmin( x2, x3 ) );
-    int miny = fmin( y1, fmin( y2, y3 ) );
+
+    int minx = round( fmin( x1, fmin( x2, x3 ) ) );
+    int miny = round( fmin( y1, fmin( y2, y3 ) ) );
     int maxx = fmax( x1, fmax( x2, x3 ) );
     int maxy = fmax( y1, fmax( y2, y3 ) );
 
@@ -159,10 +160,18 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
     float a12 = y2 - y3, b12 = x3 - x2;
     float a20 = y3 - y1, b20 = x1 - x3;
 
-    float w0row = orient2D( x2, y2, x3, y3, minx, miny );
-    float w1row = orient2D( x3, y3, x1, y1, minx, miny );
-    float w2row = orient2D( x1, y1, x2, y2, minx, miny );
-    
+    // Correct for filling convention. FIXME: Not sure if this is correct!
+    int bias0 = a01 < 0 ? 0 : -1;
+    int bias1 = a12 < 0 ? 0 : -1;
+    int bias2 = a20 < 0 ? 0 : -1;
+    //if (a01 < 0 || (a01 == 0 && b01 < 0)) bias0 = 0;
+    //if (a12 < 0 || (a12 == 0 && b12 < 0)) bias1 = 0;
+    //if (a20 < 0 || (a20 == 0 && b20 < 0)) bias2 = 0;
+
+    float w0row = orient2D( x2, y2, x3, y3, minx, miny ) + bias0;
+    float w1row = orient2D( x3, y3, x1, y1, minx, miny ) + bias1;
+    float w2row = orient2D( x1, y1, x2, y2, minx, miny ) + bias2;
+
     Uint32* target = (Uint32*)((Uint8*)outBuffer + miny * rowPitch);
     float* targetZ = (float*)((Uint8*)zBuffer + miny * rowPitch);
 
@@ -171,11 +180,12 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
         float w0 = w0row;
         float w1 = w1row;
         float w2 = w2row;
-        
+
         for (int x = minx; x <= maxx; ++x)
         {
+        //printf( "x: %d, y: %d\n", x, y );
             float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
-                            
+
             if (z < targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
                 targetZ[ x ] = z;
@@ -184,18 +194,18 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
                 float t = w0 * t1 + w1 * t2 + w2 * t3;
                 s *= z;
                 t *= z;
-                
+
                 int ix = s * 63.0f + 0.5f;
                 int iy = t * 63.0f + 0.5f;
 
                 target[ x ] = texture[ (int)( iy * 64.0f + ix ) ];
             }
-                
+
             w0 += a12;
             w1 += a20;
-            w2 += a01;                 
+            w2 += a01;
         }
-        
+
         w0row += b12;
         w1row += b20;
         w2row += b01;
@@ -210,12 +220,18 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, flo
     double accumTriangleTime = 0;
     int renderedTriangleCount = 0;
     clock_t clo;
-    
+
+    //int positionCount[ 32 ] = { 0 };
+
     for (unsigned f = 0; f < mesh->faceCount; ++f)
     {
         Vertex cv0;
         Vertex cv1;
         Vertex cv2;
+
+        //positionCount[ mesh->faces[ f ].a ]++;
+        //positionCount[ mesh->faces[ f ].b ]++;
+        //positionCount[ mesh->faces[ f ].c ]++;
 
         Vec3 v = localToRaster( mesh->positions[ mesh->faces[ f ].a ], localToClip );
         cv0.x = v.x;
@@ -239,16 +255,21 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, flo
         cv2.v = mesh->uvs[ mesh->faces[ f ].c ].v;
 
         clo = clock();
-        
+
         if (!isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
         {
             drawTriangle2( &cv0, &cv1, &cv2, pitch, texture, zBuffer, outBuffer );
             ++renderedTriangleCount;
         }
-        
+
         clo = clock() - clo;
         accumTriangleTime += ((double)clo) / CLOCKS_PER_SEC;
     }
 
-    printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
+    /*for (int i = 0; i < mesh->faceCount; ++i)
+    {
+        printf( "position %d hit rate: %d\n", i, positionCount[ i ] );
+    }*/
+
+    //printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
 }
