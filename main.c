@@ -22,11 +22,16 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stddef.h>
-#include <stdalign.h>
 #include <stdbool.h>
+#include <string.h>
 #include <time.h>
 #include <math.h>
+#if _MSC_VER
+#include <SDL.h>
+#else
+#include <stdalign.h>
 #include <SDL2/SDL.h>
+#endif
 
 const unsigned WIDTH = 1920 / 2;
 const unsigned HEIGHT = 1080 / 2;

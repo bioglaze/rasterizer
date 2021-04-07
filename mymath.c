@@ -118,7 +118,11 @@ void transformPoint( Vec3 point, const Matrix44* mat, Vec3* out )
 
 void multiplySSE( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
 {
+#if _MSC_VER
+    float result[ 16 ];
+#else
     alignas( 16 ) float result[ 16 ];
+#endif
     Matrix44 matA;
     for (int i = 0; i < 16; ++i)
     {
