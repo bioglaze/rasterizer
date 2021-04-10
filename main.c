@@ -1,5 +1,5 @@
 // Author: Timo Wiren
-// Modified: 2021-04-07
+// Modified: 2021-04-10
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -19,6 +19,8 @@
 // Post-transform vertex cache
 // Mipmaps
 // SIMD triangle rendering: https://t0rakka.silvrback.com/software-rasterizer
+// Hi-Z
+// -march=x86_64-v2 (for MacBook Pro 2010)
 #include <assert.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -50,7 +52,8 @@ int main( int argc, char** argv )
     int texWidth = 0;
     int texHeight = 0;
     int* checkerTex = loadBMP( "checker.bmp", &texWidth, &texHeight );
-
+    assert( texWidth == texHeight && "drawTriangle assumes square texture dimension!" );
+    
     SDL_Init( SDL_INIT_VIDEO );
     const unsigned createFlags = SDL_WINDOW_SHOWN;
     SDL_Window* win = SDL_CreateWindow( "Software Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, createFlags );
@@ -70,9 +73,13 @@ int main( int argc, char** argv )
     Mesh cube;
     loadObj( "cube.obj", &cube );
 
+    Frustum cameraFrustum;
+
     Matrix44 projMat;
     makeProjection( 45.0f, WIDTH / (float)HEIGHT, 0.1f, 100.0f, &projMat );
 
+    frustumSetProjection( &cameraFrustum, 45.0f, WIDTH / (float)HEIGHT, 0.1f, 100.0f );
+    
     SDL_SetWindowGrab( win, SDL_TRUE );
     SDL_SetRelativeMouseMode( SDL_TRUE );
 
@@ -120,14 +127,6 @@ int main( int argc, char** argv )
 
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RIGHT)
             {
-                float yawRad = yaw * 3.14159265f / 180.0f;
-                float pitchRad = cameraPitch * 3.14159265f / 180.0f;
-
-                cameraDir.x = cos( yawRad ) * cos( pitchRad );
-                cameraDir.y = sin( pitchRad );
-                cameraDir.z = sin( yawRad ) * cos( pitchRad );
-                cameraFront = normalized( cameraDir );
-                printf( "cameraFront: %f, %f, %f\n", cameraFront.x, cameraFront.y, cameraFront.z );
                 --yaw;
             }
 
@@ -149,7 +148,6 @@ int main( int argc, char** argv )
         cameraDir.y = sin( pitchRad );
         cameraDir.z = sin( yawRad ) * cos( pitchRad );
         cameraFront = normalized( cameraDir );
-        //printf( "cameraFront: %f, %f, %f\n", cameraFront.x, cameraFront.y, cameraFront.z );
 
         SDL_RenderClear( renderer );
 
@@ -176,28 +174,35 @@ int main( int argc, char** argv )
 
         makeLookat( cameraPos, add( cameraPos, cameraFront ), &worldToView );
 
+        updateFrustum( &cameraFrustum, cameraPos, cameraDir );
+        
         Matrix44 localToView;
         multiplySSE( &meshLocalToWorld, &worldToView, &localToView );
 
         Matrix44 localToClip;
         multiplySSE( &localToView, &projMat, &localToClip );
 
-        Matrix44 meshLocalToWorld2;
-        makeIdentity( &meshLocalToWorld2 );
-        meshLocalToWorld2.m[ 12 ] = 2;
-        meshLocalToWorld2.m[ 13 ] = 0;
-        meshLocalToWorld2.m[ 14 ] = 5;
+        //angleDeg += 0.5f;
 
-        multiplySSE( &rotation, &meshLocalToWorld2, &meshLocalToWorld2 );
+        Vec3 meshAabbWorld[ 8 ];
+        Vec3 meshAabbMinWorld = cube.aabbMin;
+        Vec3 meshAabbMaxWorld = cube.aabbMax;
+        getCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
 
-        Matrix44 localToClip2;
-        multiplySSE( &meshLocalToWorld2, &projMat, &localToClip2 );
+        for (unsigned v = 0; v < 8; ++v)
+        {
+            Vec3 res;
+            transformPoint( meshAabbWorld[ v ], &meshLocalToWorld, &res );
+            meshAabbWorld[ v ] = res;
+        }
 
-        angleDeg += 0.5f;
+        getMinMax( meshAabbWorld, 8, &meshAabbMinWorld, &meshAabbMaxWorld );
 
-        renderMesh( &cube, &localToClip, pitch, checkerTex, zBuf, pixels );
-        renderMesh( &cube, &localToClip2, pitch, checkerTex, zBuf, pixels );
-
+        //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+        {
+            renderMesh( &cube, &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
+        }
+        
         for (int y = 0; y < mini( texHeight, HEIGHT ); ++y)
         {
             for (int x = 0; x < mini( texWidth, WIDTH ); ++x)

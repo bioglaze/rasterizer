@@ -255,4 +255,56 @@ bool isBackface( float x1, float y1, float x2, float y2, float x3, float y3 )
     return ((x3 - x1) * (y3 - y2) - (x3 - x2)*(y3 - y1)) < 0;
 }
 
+void getCorners( Vec3 vMin, Vec3 vMax, Vec3 outCorners[ 8 ] )
+{
+    outCorners[ 0 ] = (Vec3){ vMin.x, vMin.y, vMin.z };
+    outCorners[ 1 ] = (Vec3){ vMax.x, vMin.y, vMin.z };
+    outCorners[ 2 ] = (Vec3){ vMin.x, vMax.y, vMin.z };
+    outCorners[ 3 ] = (Vec3){ vMin.x, vMin.y, vMax.z };
+    outCorners[ 4 ] = (Vec3){ vMax.x, vMax.y, vMin.z };
+    outCorners[ 5 ] = (Vec3){ vMin.x, vMax.y, vMax.z };
+    outCorners[ 6 ] = (Vec3){ vMax.x, vMax.y, vMax.z };
+    outCorners[ 7 ] = (Vec3){ vMax.x, vMin.y, vMax.z };
+}
+
+void getMinMax( const Vec3* aPoints, int count, Vec3* outMin, Vec3* outMax )
+{
+    *outMin = aPoints[ 0 ];
+    *outMax = aPoints[ 0 ];
+
+    for (int i = 1, s = count; i < s; ++i)
+    {
+        Vec3 point = aPoints[ i ];
+
+        if (point.x < outMin->x)
+        {
+            outMin->x = point.x;
+        }
+
+        if (point.y < outMin->y)
+        {
+            outMin->y = point.y;
+        }
+
+        if (point.z < outMin->z)
+        {
+            outMin->z = point.z;
+        }
+
+        if (point.x > outMax->x)
+        {
+            outMax->x = point.x;
+        }
+
+        if (point.y > outMax->y)
+        {
+            outMax->y = point.y;
+        }
+
+        if (point.z > outMax->z)
+        {
+            outMax->z = point.z;
+        }
+    }
+}
 

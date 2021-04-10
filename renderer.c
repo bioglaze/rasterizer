@@ -38,7 +38,7 @@ float orient2D( float ax, float ay, float bx, float by, float cx, float cy )
 
 // Vertices must be in CCW order! texture must be a 64x64 4-channel 32-bit format.
 // Reference implementation, not optimized. Optimized version is below in drawTriangle2().
-void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, float* zBuffer, int* outBuffer )
+void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, int texDim, float* zBuffer, int* outBuffer )
 {
     float x1 = v1->x;
     float x2 = v2->x;
@@ -111,10 +111,10 @@ void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textur
                 s *= z;
                 t *= z;
 
-                int ix = s * 63.0f + 0.5f;
-                int iy = t * 63.0f + 0.5f;
+                int ix = s * ((float)texDim - 1.0f) + 0.5f;
+                int iy = t * ((float)texDim - 1.0f) + 0.5f;
 
-                target[ x ] = texture[ (int)( iy * 64.0f + ix ) ];
+                target[ x ] = texture[ iy * texDim + ix ];
             }
         }
 
@@ -125,7 +125,8 @@ void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textur
 
 // Vertices must be in CCW order! texture must be a 64x64 4-channel 32-bit format.
 // Optimized version of drawTriangle().
-void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, float* zBuffer, int* outBuffer )
+// texture dimension must be square (width == height)
+void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, int texDim, float* zBuffer, int* outBuffer )
 {
     float x1 = v1->x;
     float x2 = v2->x;
@@ -195,10 +196,10 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
                 s *= z;
                 t *= z;
 
-                int ix = s * 63.0f + 0.5f;
-                int iy = t * 63.0f + 0.5f;
+                int ix = s * ((float)texDim - 1.0f) + 0.5f;
+                int iy = t * ((float)texDim - 1.0f) + 0.5f;
 
-                target[ x ] = texture[ (int)( iy * 64.0f + ix ) ];
+                target[ x ] = texture[ iy * texDim + ix ];
             }
 
             w0 += a12;
@@ -215,7 +216,7 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
     }
 }
 
-void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, float* zBuffer, int* outBuffer )
+void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int texDim, float* zBuffer, int* outBuffer )
 {
     double accumTriangleTime = 0;
     int renderedTriangleCount = 0;
@@ -258,7 +259,7 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, flo
 
         if (!isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
         {
-            drawTriangle2( &cv0, &cv1, &cv2, pitch, texture, zBuffer, outBuffer );
+            drawTriangle2( &cv0, &cv1, &cv2, pitch, texture, texDim, zBuffer, outBuffer );
             ++renderedTriangleCount;
         }
 
