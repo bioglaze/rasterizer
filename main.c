@@ -45,6 +45,12 @@ const unsigned HEIGHT = 1080 / 2;
 #include "loadobj.c"
 #include "loadbmp.c"
 
+typedef struct GameObject
+{
+    Vec3 position;
+    //Vec3 rotation;
+} GameObject;
+
 int main( int argc, char** argv )
 {
     (void)argc;
@@ -90,6 +96,10 @@ int main( int argc, char** argv )
     Vec3 cameraDir = { 0, 0, 1 };
     float yaw = 90;
     float cameraPitch = 0;
+
+    GameObject scene[ 2 ];
+    scene[ 0 ].position = (Vec3){ -2, 0, 5 };
+    scene[ 1 ].position = (Vec3){ 2, 0, 5 };
     
     while (1)
     {
@@ -159,48 +169,52 @@ int main( int argc, char** argv )
         memset( pixels, 0, WIDTH * HEIGHT * 4 );
         memset( zBuf, 0, WIDTH * HEIGHT * 4 );
 
-        Matrix44 meshLocalToWorld;
-        makeIdentity( &meshLocalToWorld );
-        meshLocalToWorld.m[ 12 ] = -2;
-        meshLocalToWorld.m[ 13 ] = 0;
-        meshLocalToWorld.m[ 14 ] = 5;
-
-        Matrix44 rotation;
-        makeRotationXYZ( angleDeg, angleDeg, angleDeg, &rotation );
-
-        multiplySSE( &rotation, &meshLocalToWorld, &meshLocalToWorld );
-
         Matrix44 worldToView;
-
         makeLookat( cameraPos, add( cameraPos, cameraFront ), &worldToView );
 
-        updateFrustum( &cameraFrustum, cameraPos, cameraDir );
+        printf( "cameraDir: %f, %f, %f, cameraFront: %f, %f, %f\n", cameraDir.x, cameraDir.y, cameraDir.z, cameraFront.x, cameraFront.y, cameraFront.z );
+        updateFrustum( &cameraFrustum, cameraPos, cameraFront );
+
+        for (int i = 0; i < 2; ++i)
+        {
+            Matrix44 meshLocalToWorld;
+            makeIdentity( &meshLocalToWorld );
+            meshLocalToWorld.m[ 12 ] = scene[ i ].position.x;
+            meshLocalToWorld.m[ 13 ] = scene[ i ].position.y;
+            meshLocalToWorld.m[ 14 ] = scene[ i ].position.z;
+
+            Matrix44 rotation;
+            makeRotationXYZ( angleDeg, angleDeg, angleDeg, &rotation );
+
+            multiplySSE( &rotation, &meshLocalToWorld, &meshLocalToWorld );
         
-        Matrix44 localToView;
-        multiplySSE( &meshLocalToWorld, &worldToView, &localToView );
+            Matrix44 localToView;
+            multiplySSE( &meshLocalToWorld, &worldToView, &localToView );
 
-        Matrix44 localToClip;
-        multiplySSE( &localToView, &projMat, &localToClip );
+            Matrix44 localToClip;
+            multiplySSE( &localToView, &projMat, &localToClip );
 
-        //angleDeg += 0.5f;
+            //angleDeg += 0.5f;
 
-        Vec3 meshAabbWorld[ 8 ];
-        Vec3 meshAabbMinWorld = cube.aabbMin;
-        Vec3 meshAabbMaxWorld = cube.aabbMax;
-        getCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
+            Vec3 meshAabbWorld[ 8 ];
+            Vec3 meshAabbMinWorld = cube.aabbMin;
+            Vec3 meshAabbMaxWorld = cube.aabbMax;
+            //printf( "aabMin: %f, %f, %f, aabMax: %f, %f, %f\n", cube.aabbMin.x, cube.aabbMin.y, cube.aabbMin.z, cube.aabbMax.x, cube.aabbMax.y, cube.aabbMax.z );
+            getCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
 
-        for (unsigned v = 0; v < 8; ++v)
-        {
-            Vec3 res;
-            transformPoint( meshAabbWorld[ v ], &meshLocalToWorld, &res );
-            meshAabbWorld[ v ] = res;
-        }
+            for (unsigned v = 0; v < 8; ++v)
+            {
+                Vec3 res;
+                transformPoint( meshAabbWorld[ v ], &meshLocalToWorld, &res );
+                meshAabbWorld[ v ] = res;
+            }
 
-        getMinMax( meshAabbWorld, 8, &meshAabbMinWorld, &meshAabbMaxWorld );
-
-        //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
-        {
-            renderMesh( &cube, &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
+            getMinMax( meshAabbWorld, 8, &meshAabbMinWorld, &meshAabbMaxWorld );
+            printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
+            //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+            {
+                renderMesh( &cube, &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
+            }
         }
         
         for (int y = 0; y < mini( texHeight, HEIGHT ); ++y)

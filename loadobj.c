@@ -278,6 +278,9 @@ void createFinalGeometry( const OBJMesh* objMesh, Mesh* mesh )
         assert( mesh->faceCount < 128343 );
     }
 
+    mesh->aabbMin = (Vec3){ 999999.0f, 999999.0f, 999999.0f };
+    mesh->aabbMax = (Vec3){ -999999.0f, -999999.0f, -999999.0f };
+    
     for (unsigned i = 0; i < mesh->vertexCount; ++i)
     {
         if (mesh->positions[ i ].x < mesh->aabbMin.x)
