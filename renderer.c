@@ -184,7 +184,6 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
 
         for (int x = minx; x <= maxx; ++x)
         {
-        //printf( "x: %d, y: %d\n", x, y );
             float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
 
             if (z < targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)
@@ -198,6 +197,9 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
 
                 int ix = s * ((float)texDim - 1.0f) + 0.5f;
                 int iy = t * ((float)texDim - 1.0f) + 0.5f;
+
+                ix = maxi( 0, mini( ix, texDim - 1 ) );
+                iy = maxi( 0, mini( iy, texDim - 1 ) );
 
                 target[ x ] = texture[ iy * texDim + ix ];
             }

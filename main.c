@@ -1,5 +1,5 @@
 // Author: Timo Wiren
-// Modified: 2021-04-10
+// Modified: 2021-04-17
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -48,7 +48,7 @@ const unsigned HEIGHT = 1080 / 2;
 typedef struct GameObject
 {
     Vec3 position;
-    //Vec3 rotation;
+    Vec3 rotation;
 } GameObject;
 
 int main( int argc, char** argv )
@@ -100,9 +100,14 @@ int main( int argc, char** argv )
     GameObject scene[ 2 ];
     scene[ 0 ].position = (Vec3){ -2, 0, 5 };
     scene[ 1 ].position = (Vec3){ 2, 0, 5 };
+
+    uint32_t startTime = SDL_GetTicks();
+    double deltaTime = 0.0;
     
     while (1)
     {
+        startTime = SDL_GetTicks();
+        
         SDL_Event e;
 
         while (SDL_PollEvent( &e ))
@@ -138,6 +143,16 @@ int main( int argc, char** argv )
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RIGHT)
             {
                 --yaw;
+            }
+
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_w)
+            {
+                cameraPos = add( cameraPos, mulf( cameraDir, 10.0 * deltaTime ) );
+            }
+
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_s)
+            {
+                cameraPos = sub( cameraPos, mulf( cameraDir, 10.0 * deltaTime ) );
             }
 
             if (e.type == SDL_MOUSEMOTION)
@@ -230,6 +245,9 @@ int main( int argc, char** argv )
 
         SDL_RenderCopy( renderer, renderTexture, NULL, NULL );
         SDL_RenderPresent( renderer );
+
+        uint32_t endTime = SDL_GetTicks();
+        deltaTime = (endTime - startTime) / 1000.0;
     }
 
     free( backBuf );
