@@ -222,7 +222,6 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
 {
     double accumTriangleTime = 0;
     int renderedTriangleCount = 0;
-    clock_t clo;
 
     //int positionCount[ 32 ] = { 0 };
 
@@ -257,7 +256,7 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         cv2.u = mesh->uvs[ mesh->faces[ f ].c ].u;
         cv2.v = mesh->uvs[ mesh->faces[ f ].c ].v;
 
-        clo = clock();
+        uint64_t startTime = SDL_GetPerformanceCounter();
 
         if (!isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
         {
@@ -265,8 +264,10 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
             ++renderedTriangleCount;
         }
 
-        clo = clock() - clo;
-        accumTriangleTime += ((double)clo) / CLOCKS_PER_SEC;
+        uint64_t currTime = SDL_GetPerformanceCounter();
+        double elapsedTime = (double)((currTime - startTime) / (double)(SDL_GetPerformanceFrequency()));
+
+        accumTriangleTime += elapsedTime;
     }
 
     /*for (int i = 0; i < mesh->faceCount; ++i)
@@ -274,5 +275,5 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         printf( "position %d hit rate: %d\n", i, positionCount[ i ] );
     }*/
 
-    //printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
+    printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
 }

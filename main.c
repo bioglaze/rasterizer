@@ -187,10 +187,10 @@ int main( int argc, char** argv )
         Matrix44 worldToView;
         makeLookat( cameraPos, add( cameraPos, cameraFront ), &worldToView );
 
-        printf( "cameraDir: %f, %f, %f, cameraFront: %f, %f, %f\n", cameraDir.x, cameraDir.y, cameraDir.z, cameraFront.x, cameraFront.y, cameraFront.z );
+        //printf( "cameraDir: %f, %f, %f, cameraFront: %f, %f, %f\n", cameraDir.x, cameraDir.y, cameraDir.z, cameraFront.x, cameraFront.y, cameraFront.z );
         updateFrustum( &cameraFrustum, cameraPos, cameraFront );
 
-        for (int i = 0; i < 2; ++i)
+        for (int i = 0; i < 1; ++i)
         {
             Matrix44 meshLocalToWorld;
             makeIdentity( &meshLocalToWorld );
@@ -225,7 +225,7 @@ int main( int argc, char** argv )
             }
 
             getMinMax( meshAabbWorld, 8, &meshAabbMinWorld, &meshAabbMaxWorld );
-            printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
+            //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
             //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
             {
                 renderMesh( &cube, &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
