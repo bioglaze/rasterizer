@@ -45,9 +45,11 @@ void makeIdentity( Matrix44* mat )
 
 void makeLookat( Vec3 eye, Vec3 center, Matrix44* mat )
 {
-    const Vec3 zAxis = normalized( sub( center, eye) );
-    const Vec3 xAxis = normalized( cross( (Vec3){ 0, 1, 0 }, zAxis ) );
-    const Vec3 yAxis = normalized( cross( zAxis, xAxis ) );
+    Vec3 zAxis = normalized( sub( center, eye ) );
+
+    Vec3 up = { 0, 1, 0 };
+    Vec3 xAxis = normalized( cross( up, zAxis ) );
+    Vec3 yAxis = normalized( cross( zAxis, xAxis ) );
 
     mat->m[ 0 ] = xAxis.x; mat->m[ 1 ] = xAxis.y; mat->m[ 2 ] = xAxis.z; mat->m[ 3 ] = -dot( xAxis, eye );
     mat->m[ 4 ] = yAxis.x; mat->m[ 5 ] = yAxis.y; mat->m[ 6 ] = yAxis.z; mat->m[ 7 ] = -dot( yAxis, eye );
@@ -195,9 +197,9 @@ Vec3 localToRaster( Vec3 v, const Matrix44* localToClip )
     transformPoint( v, localToClip, &vertexNDC );
 
     Vec3 output;
-    output.x = WIDTH * 0.5f + vertexNDC.x * WIDTH  * 0.5f / vertexNDC.z;
-    output.y = HEIGHT * 0.5f + vertexNDC.y * HEIGHT * 0.5f / vertexNDC.z;
-    output.z = vertexNDC.z;
+    output.x = WIDTH * 0.5f + vertexNDC.x * WIDTH  * 0.5f / -vertexNDC.z;
+    output.y = HEIGHT * 0.5f + vertexNDC.y * HEIGHT * 0.5f / -vertexNDC.z;
+    output.z = -vertexNDC.z;
 
     return output;
 }

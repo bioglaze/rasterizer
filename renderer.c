@@ -258,9 +258,9 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
 
         uint64_t startTime = SDL_GetPerformanceCounter();
 
-        if (!isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
+        if (!isBackface( cv0.x, cv0.y, cv2.x, cv2.y, cv1.x, cv1.y))
         {
-            drawTriangle2( &cv0, &cv1, &cv2, pitch, texture, texDim, zBuffer, outBuffer );
+            drawTriangle2( &cv0, &cv2, &cv1, pitch, texture, texDim, zBuffer, outBuffer );
             ++renderedTriangleCount;
         }
 
