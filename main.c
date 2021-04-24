@@ -1,5 +1,5 @@
 // Author: Timo Wiren
-// Modified: 2021-04-17
+// Modified: 2021-04-24
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -76,8 +76,9 @@ int main( int argc, char** argv )
     int* backBuf = malloc( WIDTH * HEIGHT * 4 );
     int pitch = 0;
 
-    Mesh cube;
-    loadObj( "cube.obj", &cube );
+    Mesh cube[ 1 ];
+    int cubeMeshCount = 1;
+    loadObj( "cube.obj", &cube[ 0 ], &cubeMeshCount );
 
     Frustum cameraFrustum;
 
@@ -212,8 +213,8 @@ int main( int argc, char** argv )
             //angleDeg += 0.5f;
 
             Vec3 meshAabbWorld[ 8 ];
-            Vec3 meshAabbMinWorld = cube.aabbMin;
-            Vec3 meshAabbMaxWorld = cube.aabbMax;
+            Vec3 meshAabbMinWorld = cube[ 0 ].aabbMin;
+            Vec3 meshAabbMaxWorld = cube[ 0 ].aabbMax;
             //printf( "aabMin: %f, %f, %f, aabMax: %f, %f, %f\n", cube.aabbMin.x, cube.aabbMin.y, cube.aabbMin.z, cube.aabbMax.x, cube.aabbMax.y, cube.aabbMax.z );
             getCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
 
@@ -228,7 +229,7 @@ int main( int argc, char** argv )
             //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
             if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
             {
-                renderMesh( &cube, &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
+                renderMesh( &cube[ 0 ], &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
             }
         }
         

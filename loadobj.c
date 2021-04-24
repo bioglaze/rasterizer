@@ -315,7 +315,7 @@ void createFinalGeometry( const OBJMesh* objMesh, Mesh* mesh )
     }
 }
 
-void loadObj( const char* path, Mesh* outMesh )
+void loadObj( const char* path, Mesh* outMeshes, int* outMeshCount )
 {
     FILE* file = fopen( path, "rb" );
 
@@ -367,8 +367,10 @@ void loadObj( const char* path, Mesh* outMesh )
 
     fclose( file );
 
+    *outMeshCount = meshCount;
+    
     for (int m = 0; m < meshCount; ++m)
     {
-        createFinalGeometry( &meshes[ m ], outMesh );
+        createFinalGeometry( &meshes[ m ], &outMeshes[ m ] );
     }
 }
