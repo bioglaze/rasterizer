@@ -1,3 +1,6 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+
 // Author: Timo Wiren
 // Modified: 2021-04-24
 //
@@ -116,13 +119,16 @@ int main( int argc, char** argv )
             if (e.type == SDL_QUIT)
             {
                 free( checkerTex );
+                free( zBuf );
+                free( backBuf );
                 return 0;
             }
 
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
             {
-                free( backBuf );
                 free( checkerTex );
+                free( zBuf );
+                free( backBuf );
                 return 0;
             }
 

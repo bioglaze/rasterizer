@@ -1,3 +1,6 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+
 typedef struct
 {
     unsigned posInd[ 3 ];
@@ -51,11 +54,11 @@ OBJMesh* initMeshArrays( FILE* file )
             ++uvCount;
             ++totalUVCount;
         }
-        else if (strstr( input, "f" ))
+        else if (strchr( input, 'f' ))
         {
             ++faceCount;
         }
-        else if (strstr( input, "s" ))
+        else if (strchr( input, 's' ))
         {
             char str1[ 128 ];
             char smoothName[ 128 ];
@@ -66,7 +69,7 @@ OBJMesh* initMeshArrays( FILE* file )
                 printf( "Warning: The file contains smoothing groups. They are not supported by the converter.\n" );
             }
         }
-        else if (strstr( input, "v" ))
+        else if (strchr( input, 'v' ))
         {
             ++positionCount;
             ++totalPositionCount;
