@@ -200,9 +200,9 @@ Vec3 localToRaster( Vec3 v, const Matrix44* localToClip )
     transformPoint( v, localToClip, &vertexNDC );
 
     Vec3 output;
-    output.x = WIDTH * 0.5f + vertexNDC.x * WIDTH  * 0.5f / -vertexNDC.z;
-    output.y = HEIGHT * 0.5f + vertexNDC.y * HEIGHT * 0.5f / -vertexNDC.z;
-    output.z = -vertexNDC.z;
+    output.x = WIDTH * 0.5f + vertexNDC.x * WIDTH  * 0.5f / vertexNDC.z;
+    output.y = HEIGHT * 0.5f + vertexNDC.y * HEIGHT * 0.5f / vertexNDC.z;
+    output.z = vertexNDC.z;
 
     return output;
 }

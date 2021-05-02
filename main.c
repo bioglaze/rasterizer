@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 // Author: Timo Wiren
-// Modified: 2021-04-24
+// Modified: 2021-05-02
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -96,8 +96,8 @@ int main( int argc, char** argv )
     float angleDeg = 0;
 
     Vec3 cameraPos = { 0, 0, 0 };
-    Vec3 cameraFront = { 0, 0, -1 };
-    Vec3 cameraDir = { 0, 0, -1 };
+    Vec3 cameraFront;
+    Vec3 cameraDir;
     float yaw = 90;
     float cameraPitch = 0;
 
@@ -168,8 +168,8 @@ int main( int argc, char** argv )
                 float dy = e.motion.yrel;
                 dx *= 0.02f;
                 dy *= 0.02f;
-                yaw += dx;
-                cameraPitch += dy;
+                yaw -= dx;
+                cameraPitch -= dy;
             }
         }
 
@@ -233,7 +233,7 @@ int main( int argc, char** argv )
 
             getMinMax( meshAabbWorld, 8, &meshAabbMinWorld, &meshAabbMaxWorld );
             //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
-            if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+            //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
             {
                 renderMesh( &cube[ 0 ], &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
             }

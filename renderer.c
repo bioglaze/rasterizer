@@ -189,7 +189,7 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
         {
             float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
 
-            if (z < targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)
+            if (z > targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
                 targetZ[ x ] = z;
 
