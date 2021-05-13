@@ -29,6 +29,13 @@ OBJMesh* initMeshArrays( FILE* file )
     char line[ 255 ];
 
     OBJMesh* meshes = malloc( sizeof( OBJMesh ) * 10 );
+    for (int i = 0; i < 10; ++i)
+    {
+        meshes[ i ].uvOffset = 0;
+        meshes[ i ].positionOffset = 0;
+        meshes[ i ].normalOffset = 0;
+    }
+    
     unsigned meshCount = 0;
 
     unsigned positionCount = 0;
@@ -75,7 +82,7 @@ OBJMesh* initMeshArrays( FILE* file )
             ++totalPositionCount;
         }
 
-        if (strcmp( input, "o" ) == 0 || strcmp( input, "g" ) == 0)
+        if (strchr( input, 'o' ) != 0 || strchr( input, 'g' ) != 0)
         {
             if (meshCount != 0)
             {
@@ -100,13 +107,11 @@ OBJMesh* initMeshArrays( FILE* file )
             }
 
             ++meshCount;
+            assert( meshCount < 10 );
         }
     }
 
     // Last mesh
-    meshes[ meshCount - 1 ].positionOffset = 0;
-    meshes[ meshCount - 1 ].uvOffset = 0;
-    meshes[ meshCount - 1 ].normalOffset = 0;
     meshes[ meshCount - 1 ].faceCount = faceCount;
     meshes[ meshCount - 1 ].positionCount = positionCount;
     meshes[ meshCount - 1 ].uvCount = uvCount;

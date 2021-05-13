@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 // Author: Timo Wiren
-// Modified: 2021-05-02
+// Modified: 2021-05-13
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -79,10 +79,10 @@ int main( int argc, char** argv )
     int* backBuf = malloc( WIDTH * HEIGHT * 4 );
     int pitch = 0;
 
-    Mesh cube[ 1 ];
+    Mesh cube[ 2 ];
     int cubeMeshCount = 1;
     loadObj( "cube.obj", &cube[ 0 ], &cubeMeshCount );
-
+    
     Frustum cameraFrustum;
 
     Matrix44 projMat;
@@ -232,10 +232,14 @@ int main( int argc, char** argv )
             }
 
             getMinMax( meshAabbWorld, 8, &meshAabbMinWorld, &meshAabbMaxWorld );
-            //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
-            //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+
+            for (int subMesh = 0; subMesh < cubeMeshCount; ++subMesh)
             {
-                renderMesh( &cube[ 0 ], &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
+                //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
+                //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+                {
+                    renderMesh( &cube[ subMesh ], &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
+                }
             }
         }
         
