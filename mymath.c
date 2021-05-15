@@ -257,7 +257,18 @@ float sRGBToLinear( float s )
 
 bool isBackface( float x1, float y1, float x2, float y2, float x3, float y3 )
 {
-    return ((x3 - x1) * (y3 - y2) - (x3 - x2)*(y3 - y1)) < 0;
+    return ((x3 - x1) * (y3 - y2) - (x3 - x2) * (y3 - y1)) < 0;
+}
+
+// 1 is rectangle.
+// If width is dominant, value increases.
+// If height is dominant, the value reduces.
+// Experience shows that triangles with value 0.4-1.6 should be rasterized using block-based approach.
+// All other cases should not use block-based approach. 
+// (Source: P. Mileff et al. Accelerated Half-Space Triangle Rasterization)
+float getRatio( Vec3 aabbMin, Vec3 aabbMax )
+{
+    return (aabbMax.x - aabbMin.x) / (aabbMax.y - aabbMin.y);
 }
 
 void getCorners( Vec3 vMin, Vec3 vMax, Vec3 outCorners[ 8 ] )
