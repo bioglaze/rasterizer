@@ -39,7 +39,7 @@ float orient2D( float ax, float ay, float bx, float by, float cx, float cy )
     return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
 }
 
-// Vertices must be in CCW order! texture must be a 64x64 4-channel 32-bit format.
+// Vertices must be in CCW order! texture must be a 4-channel 32-bit format.
 // Reference implementation, not optimized. Optimized version is below in drawTriangle2().
 void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, int texDim, float* zBuffer, int* outBuffer )
 {
@@ -254,6 +254,9 @@ void drawTriangle3( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
     miny = fmax( miny, 0 );
     maxx = fmin( maxx, WIDTH - 1 );
     maxy = fmin( maxy, HEIGHT - 1 );
+
+    float ratio = getRatio( (Vec3){ minx, miny, 0 }, (Vec3){ maxx, maxy, 0 } );
+    bool useBlock = ratio > 0.4f && ratio < 1.6f;
 
     const int blockDim = 8;
     
