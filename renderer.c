@@ -1,6 +1,12 @@
 // This is an independent project of an individual developer. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+
 typedef struct
 {
     float x, y, z;
@@ -337,7 +343,8 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
 {
     double accumTriangleTime = 0;
     int renderedTriangleCount = 0;
-
+    unsigned long long accumCycles = 0;
+    
     //int positionCount[ 32 ] = { 0 };
 
     for (unsigned f = 0; f < mesh->faceCount; ++f)
@@ -372,7 +379,8 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         cv2.v = mesh->uvs[ mesh->faces[ f ].c ].v;
 
         uint64_t startTime = SDL_GetPerformanceCounter();
-
+        unsigned long long startCycles = __rdtsc();
+        
         // Unoptimized:
         /*if (isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
         {
@@ -391,6 +399,7 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         double elapsedTime = (double)((currTime - startTime) / (double)(SDL_GetPerformanceFrequency()));
 
         accumTriangleTime += elapsedTime;
+        accumCycles += __rdtsc() - startCycles;
     }
 
     /*for (int i = 0; i < mesh->faceCount; ++i)
@@ -398,5 +407,5 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         printf( "position %d hit rate: %d\n", i, positionCount[ i ] );
     }*/
 
-    printf( "One mesh's triangle rendering time: %f seconds. Rendered triangle count: %d\n", accumTriangleTime, renderedTriangleCount );
+    printf( "One mesh's triangle rendering time: %f seconds, %llu cycles. Rendered triangle count: %d\n", accumTriangleTime, accumCycles, renderedTriangleCount );
 }
