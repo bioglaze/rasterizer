@@ -1,11 +1,12 @@
 // This is an independent project of an individual developer. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
-#ifdef _MSC_VER
+/*#ifdef _MSC_VER
 #include <intrin.h>
 #else
 #include <x86intrin.h>
 #endif
+*/
 
 typedef struct
 {
@@ -166,6 +167,22 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
     maxx = fmin( maxx, WIDTH - 1 );
     maxy = fmin( maxy, HEIGHT - 1 );
 
+    //assert( minx <= maxx && "minx == maxx" );
+    //assert( miny <= maxy && "miny == maxy" );
+    
+    if (minx > maxx || miny > maxy)
+        return;
+        
+    if (minx > WIDTH || miny > HEIGHT)
+        return;
+        
+    if (maxx < 0 || maxy < 0)
+        return;
+        
+    if (v1->z < 0 && v2->z < 0 && v3->z < 0)
+        printf("cull?\n");    
+    //printf( "minx: %d, miny: %d, maxx: %d, maxy: %d\n", minx, miny, maxx, maxy );
+    //printf( "z1: %f, z2: %f, z3: %f\n", v1->z, v2->z, v3->z );
     float a01 = y1 - y2, b01 = x2 - x1;
     float a12 = y2 - y3, b12 = x3 - x2;
     float a20 = y3 - y1, b20 = x1 - x3;
@@ -343,7 +360,7 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
 {
     double accumTriangleTime = 0;
     int renderedTriangleCount = 0;
-    unsigned long long accumCycles = 0;
+    uint64_t accumCycles = 0;
     
     //int positionCount[ 32 ] = { 0 };
 
@@ -379,7 +396,7 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         cv2.v = mesh->uvs[ mesh->faces[ f ].c ].v;
 
         uint64_t startTime = SDL_GetPerformanceCounter();
-        unsigned long long startCycles = __rdtsc();
+        uint64_t startCycles = __rdtsc();
         
         // Unoptimized:
         /*if (isBackface( cv0.x, cv0.y, cv1.x, cv1.y, cv2.x, cv2.y))
@@ -407,5 +424,5 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         printf( "position %d hit rate: %d\n", i, positionCount[ i ] );
     }*/
 
-    printf( "One mesh's triangle rendering time: %f seconds, %llu cycles. Rendered triangle count: %d\n", accumTriangleTime, accumCycles, renderedTriangleCount );
+    //printf( "One mesh's triangle rendering time: %f seconds, %llu cycles. Rendered triangle count: %d\n", accumTriangleTime, accumCycles, renderedTriangleCount );
 }

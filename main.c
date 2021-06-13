@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 // Author: Timo Wiren
-// Modified: 2021-05-13
+// Modified: 2021-06-11
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -19,6 +19,7 @@
 // Frustum culling
 // Verify that min() and max() are branchless
 // vectorcall
+// MAD
 // Post-transform vertex cache
 // Mipmaps
 // SIMD triangle rendering: https://t0rakka.silvrback.com/software-rasterizer
@@ -31,6 +32,7 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#include <pmmintrin.h>
 #if _MSC_VER
 #include <SDL.h>
 #else
