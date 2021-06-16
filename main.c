@@ -35,9 +35,11 @@
 #include <pmmintrin.h>
 #if _MSC_VER
 #include <SDL.h>
+#include <intrin.h>
 #else
 #include <stdalign.h>
 #include <SDL2/SDL.h>
+#include <x86intrin.h>
 #endif
 
 const unsigned WIDTH = 1920 / 2;
