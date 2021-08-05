@@ -17,7 +17,7 @@ endif
 
 release:
 ifeq ($(UNAME), Linux)
-	gcc -O3 -g -Wall -Wextra -pedantic -std=c11 main.c -lSDL2 -lm -o main
+	gcc -O3 -g -Wall -Wextra -pedantic -std=c11 -march=x86-64-v2 main.c -lSDL2 -lm -o main
 endif
 ifeq ($(UNAME), Darwin)
 	clang -O3 -Wall -Wextra main.c -F/Library/Frameworks -framework SDL2 -o main
