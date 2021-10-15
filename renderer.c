@@ -203,9 +203,11 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
 
         for (int x = minx; x <= maxx; ++x)
         {
-            float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
+            float di = (w0 * z1 + w1 * z2 + w2 * z3);
+            float z = 1.0f / di;
 
-            if (z > targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)
+            // FIXME: looks like di only becomes 0 when object is offscreen, and should already be culled.
+            if (di != 0 && z > targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)
             {
                 targetZ[ x ] = z;
 
@@ -299,6 +301,10 @@ void drawTriangle3( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
     Uint32* target = (Uint32*)((Uint8*)outBuffer + miny * rowPitch);
     float* targetZ = (float*)((Uint8*)zBuffer + miny * rowPitch);
 
+    int c1 = (y1 - y2) * x1 - (x1 - x2) * y1;
+    int c2 = (y2 - y3) * x2 - (x2 - x3) * y2;
+    int c3 = (y3 - y1) * x3 - (x3 - x1) * y3;
+    
     for (int y = miny; y <= maxy; y += blockDim)
     {
         float w0 = w0row;
@@ -313,8 +319,12 @@ void drawTriangle3( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
             int y0 = y;
             int y1 = y + blockDim - 1;
             
-            // TODO stuff...
-            
+            // TODO stuff... WIP
+            int a00 = edgeFunction( x0, y0, x1, y1, x, y ) + bias0;
+            int a01 = edgeFunction( x0, y0, x1, y1, x, y ) + bias0;
+            int a02 = edgeFunction( x0, y0, x1, y1, x, y ) + bias0;
+            int a03 = edgeFunction( x0, y0, x1, y1, x, y ) + bias0;
+
             float z = 1.0f / (w0 * z1 + w1 * z2 + w2 * z3);
 
             if (z > targetZ[ x ] && w0 >= 0 && w1 >= 0 && w2 >= 0)

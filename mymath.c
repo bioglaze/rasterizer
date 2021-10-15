@@ -286,7 +286,7 @@ void getMinMax( const Vec3* aPoints, int count, Vec3* outMin, Vec3* outMax )
     *outMin = aPoints[ 0 ];
     *outMax = aPoints[ 0 ];
 
-    for (int i = 1, s = count; i < s; ++i)
+    for (int i = 1; i < count; ++i)
     {
         Vec3 point = aPoints[ i ];
 
