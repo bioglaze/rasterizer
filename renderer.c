@@ -409,7 +409,8 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         }*/
 
         // Optimized:
-        if (!isBackface( cv0.x, cv0.y, cv2.x, cv2.y, cv1.x, cv1.y))
+        if (!isBackface( cv0.x, cv0.y, cv2.x, cv2.y, cv1.x, cv1.y) &&
+            cv0.x < 2000 && cv0.x > -2000 && cv1.x < 2000 && cv1.x > -2000 && cv2.x < 2000 && cv2.x > -2000)
         {
             drawTriangle2( &cv0, &cv2, &cv1, pitch, texture, texDim, zBuffer, outBuffer );
             ++renderedTriangleCount;
