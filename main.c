@@ -220,7 +220,7 @@ int main( int argc, char** argv )
             Matrix44 localToClip;
             multiplySSE( &localToView, &projMat, &localToClip );
 
-            //angleDeg += 0.5f;
+            angleDeg += 0.5f;
 
             Vec3 meshAabbWorld[ 8 ];
             Vec3 meshAabbMinWorld = cube[ 0 ].aabbMin;
@@ -240,7 +240,7 @@ int main( int argc, char** argv )
             for (int subMesh = 0; subMesh < cubeMeshCount; ++subMesh)
             {
                 //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
-                //if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+                if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
                 {
                     renderMesh( &cube[ subMesh ], &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
                 }

@@ -129,7 +129,7 @@ void drawTriangle( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textur
 // Vertices must be in CCW order! texture must be a 4-channel 32-bit format.
 // Optimized version of drawTriangle().
 // texture dimension must be square (width == height)
-void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, int texDim, float* zBuffer, int* outBuffer )
+void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, int texDim, int forceColor, float* zBuffer, int* outBuffer )
 {
     float x1 = v1->x;
     float x2 = v2->x;
@@ -222,7 +222,14 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
                 ix = maxi( 0, mini( ix, texDim - 1 ) );
                 iy = maxi( 0, mini( iy, texDim - 1 ) );
 
-                target[ x ] = texture[ iy * texDim + ix ];
+                if (forceColor != 0)
+                {
+                    target[ x ] = forceColor;
+                }
+                else
+                {
+                    target[ x ] = texture[ iy * texDim + ix ];
+                }
             }
 
             w0 += a12;
@@ -412,7 +419,16 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
         if (!isBackface( cv0.x, cv0.y, cv2.x, cv2.y, cv1.x, cv1.y) &&
             cv0.x < 2000 && cv0.x > -2000 && cv1.x < 2000 && cv1.x > -2000 && cv2.x < 2000 && cv2.x > -2000)
         {
-            drawTriangle2( &cv0, &cv2, &cv1, pitch, texture, texDim, zBuffer, outBuffer );
+            int forceColor = 0x000000FF;
+            
+            if (f == 0) forceColor = 0x00FF0000;
+            if (f == 1) forceColor = 0x00FF0000;
+            if (f == 3) forceColor = 0x00FF0000;
+            if (f == 4) forceColor = 0x00FF0000;
+            if (f == 5) forceColor = 0x00FF0000;
+            
+            drawTriangle2( &cv0, &cv2, &cv1, pitch, texture, texDim, forceColor, zBuffer, outBuffer );
+            
             ++renderedTriangleCount;
         }
 
