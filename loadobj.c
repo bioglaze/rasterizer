@@ -380,5 +380,11 @@ void loadObj( const char* path, Mesh* outMeshes, int* outMeshCount )
     for (int m = 0; m < meshCount; ++m)
     {
         createFinalGeometry( &meshes[ m ], &outMeshes[ m ] );
+        free( meshes[ m ].faces );
+        free( meshes[ m ].normals );
+        free( meshes[ m ].positions );
+        free( meshes[ m ].uvs );
     }
+    
+    free( meshes );
 }

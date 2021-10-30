@@ -130,6 +130,11 @@ int main( int argc, char** argv )
 
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
             {
+                free( cube[ 0 ].positions );
+                free( cube[ 0 ].normals );
+                free( cube[ 0 ].uvs );
+                free( cube[ 0 ].faces );
+
                 free( checkerTex );
                 free( zBuf );
                 free( backBuf );
