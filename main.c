@@ -42,8 +42,8 @@
 #include <x86intrin.h>
 #endif
 
-const unsigned WIDTH = 1920 / 2;
-const unsigned HEIGHT = 1080 / 2;
+const int WIDTH = 1920 / 2;
+const int HEIGHT = 1080 / 2;
 
 #include "vec3.c"
 #include "mymath.c"
@@ -101,7 +101,7 @@ int main( int argc, char** argv )
 
     Vec3 cameraPos = { 0, 0, 0 };
     Vec3 cameraFront;
-    Vec3 cameraDir;
+    Vec3 cameraDir = { 0, 0, 0 };
     float yaw = 90;
     float cameraPitch = 0;
 
