@@ -242,11 +242,18 @@ int main( int argc, char** argv )
 
             getMinMax( meshAabbWorld, 8, &meshAabbMinWorld, &meshAabbMaxWorld );
 
-            for (int subMesh = 0; subMesh < cubeMeshCount; ++subMesh)
+            if (cameraPos.x > meshAabbMinWorld.x && cameraPos.x < meshAabbMaxWorld.x &&
+                cameraPos.y > meshAabbMinWorld.y && cameraPos.y < meshAabbMaxWorld.y &&
+                cameraPos.z > meshAabbMinWorld.z && cameraPos.z < meshAabbMaxWorld.z)
             {
-                //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
-                if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+                printf("camera inside AABB\n");
+            }
+
+            if (boxInFrustum( &cameraFrustum, meshAabbMinWorld, meshAabbMaxWorld ))
+            {           
+                for (int subMesh = 0; subMesh < cubeMeshCount; ++subMesh)
                 {
+                    //printf( "minAABBWorld: %f, %f, %f, maxAABBWorld: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z, meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
                     renderMesh( &cube[ subMesh ], &localToClip, pitch, checkerTex, texWidth, zBuf, pixels );
                 }
             }
