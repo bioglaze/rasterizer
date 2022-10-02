@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 // Author: Timo Wiren
-// Modified: 2021-06-11
+// Modified: 2022-10-02
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -25,6 +25,7 @@
 // SIMD triangle rendering: https://t0rakka.silvrback.com/software-rasterizer
 // Hi-Z
 // -march=x86_64-v2 (for MacBook Pro 2010)
+// Optimize triangle test with (w0 | w1 | w2) >= 0 and check its disassembly.
 #include <assert.h>
 #include <stdio.h>
 #include <stddef.h>
