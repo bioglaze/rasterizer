@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 // Author: Timo Wiren
-// Modified: 2022-10-02
+// Modified: 2023-02-17
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -11,6 +11,7 @@
 // Barycentric interpolation from https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
 // https://www.scratchapixel.com/code.php?id=26&origin=/lessons/3d-basic-rendering/rasterization-practical-implementation
 // https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
+// https://kristoffer-dyrkorn.github.io/triangle-rasterizer/
 // View disassembly: objdump -drwC -Mintel main
 // Benchmarking: https://easyperf.net/notes/
 //
@@ -35,7 +36,7 @@
 #include <math.h>
 #include <pmmintrin.h>
 #if _MSC_VER
-#include <SDL.h>
+#include "SDL.h"
 #include <intrin.h>
 #else
 #include <stdalign.h>
