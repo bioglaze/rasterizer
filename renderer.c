@@ -249,7 +249,7 @@ void drawTriangle2( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
 // Vertices must be in CCW order! texture must be a 4-channel 32-bit format.
 // Optimized version of drawTriangle2(). Block-based approach.
 // texture dimension must be square (width == height)
-void drawTriangle3( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, int texDim, float* zBuffer, int* outBuffer )
+void drawTriangle3( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* texture, int texDim, int forceColor, float* zBuffer, int* outBuffer )
 {
     float x1 = v1->x;
     float x2 = v2->x;
@@ -343,13 +343,20 @@ void drawTriangle3( Vertex* v1, Vertex* v2, Vertex* v3, int rowPitch, int* textu
                 s *= z;
                 t *= z;
 
-                int ix = s * ((float)texDim - 1.0f) + 0.5f;
-                int iy = t * ((float)texDim - 1.0f) + 0.5f;
+                int ix = (int)(s * ((float)texDim - 1.0f) + 0.5f);
+                int iy = (int)(t * ((float)texDim - 1.0f) + 0.5f);
 
                 ix = maxi( 0, mini( ix, texDim - 1 ) );
                 iy = maxi( 0, mini( iy, texDim - 1 ) );
 
-                target[ x ] = texture[ iy * texDim + ix ];
+                if (forceColor != 0)
+                {
+                    target[ x ] = forceColor;
+                }
+                else
+                {
+                    target[ x ] = texture[ iy * texDim + ix ];
+                }
             }
 
             w0 += a12;
@@ -427,6 +434,8 @@ void renderMesh( Mesh* mesh, Matrix44* localToClip, int pitch, int* texture, int
             if (f == 4) forceColor = 0x00FF0000;
             if (f == 5) forceColor = 0x00FF0000;
             
+            forceColor = 0;
+
             drawTriangle2( &cv0, &cv2, &cv1, pitch, texture, texDim, forceColor, zBuffer, outBuffer );
             
             ++renderedTriangleCount;

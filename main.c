@@ -165,18 +165,18 @@ int main( int argc, char** argv )
 
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_w)
             {
-                cameraPos = add( cameraPos, mulf( cameraDir, 10.0 * deltaTime ) );
+                cameraPos = add( cameraPos, mulf( cameraDir, 10.0f * (float)deltaTime ) );
             }
 
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_s)
             {
-                cameraPos = sub( cameraPos, mulf( cameraDir, 10.0 * deltaTime ) );
+                cameraPos = sub( cameraPos, mulf( cameraDir, 10.0f * (float)deltaTime ) );
             }
 
             if (e.type == SDL_MOUSEMOTION)
             {
-                float dx = e.motion.xrel;
-                float dy = e.motion.yrel;
+                float dx = (float)e.motion.xrel;
+                float dy = (float)e.motion.yrel;
                 dx *= 0.02f;
                 dy *= 0.02f;
                 yaw -= dx;
@@ -187,9 +187,9 @@ int main( int argc, char** argv )
         float yawRad = yaw * 3.14159265f / 180.0f;
         float pitchRad = cameraPitch * 3.14159265f / 180.0f;
         
-        cameraDir.x = cos( yawRad ) * cos( pitchRad );
-        cameraDir.y = sin( pitchRad );
-        cameraDir.z = sin( yawRad ) * cos( pitchRad );
+        cameraDir.x = cosf( yawRad ) * cosf( pitchRad );
+        cameraDir.y = sinf( pitchRad );
+        cameraDir.z = sinf( yawRad ) * cosf( pitchRad );
         cameraFront = normalized( cameraDir );
 
         SDL_RenderClear( renderer );

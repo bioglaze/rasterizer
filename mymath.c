@@ -221,7 +221,7 @@ float toSRGB( float f )
 
     if (s > 0.0031308f)
     {
-        s = 1.055f * pow( f, 1 / 2.4f ) - 0.055f;
+        s = 1.055f * powf( f, 1 / 2.4f ) - 0.055f;
     }
 
     return s;
@@ -247,7 +247,7 @@ float sRGBToLinear( float s )
 
     if (s > 0.0404482362771082f && s <= 1)
     {
-        return pow( (s + 0.055f) / 1.055f, 2.4f );
+        return powf( (s + 0.055f) / 1.055f, 2.4f );
     }
 
     return 0;
