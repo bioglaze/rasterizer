@@ -119,7 +119,8 @@ void transformPoint( Vec3 point, const Matrix44* mat, Vec3* out )
     out->z = tmp.z;
 }
 
-void multiplySSE( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
+#ifdef ARCH_X64
+void multiplySIMD( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
 {
 #if _MSC_VER
     float result[ 16 ];
@@ -163,7 +164,7 @@ void multiplySSE( const Matrix44* ma, const Matrix44* mb, Matrix44* out )
         out->m[ i ] = result[ i ];
     }
 }
-
+#endif
 
 /*void transformPointSSE( Vec3* vec, Matrix44* mat, Vec3* out )
 {

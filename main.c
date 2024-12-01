@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 // Author: Timo Wiren
-// Modified: 2023-02-17
+// Modified: 2024-12-01
 //
 // Tested and profiled on MacBook Pro 2010, Intel Core 2 Duo P8600, 2.4 GHz, 3 MiB L2 cache, 1066 MHz FSB. Compiled using GCC 9.3.0.
 //
@@ -18,6 +18,7 @@
 // TODO:
 // 4x3 matrices for non-projective stuff or mul(float4(v.xyz,1.0f),m) -> v.x*m[0]+(v.y*m[1]+(v.z*m[2]+m[3]));
 // Frustum culling
+// ARM support
 // Verify that min() and max() are branchless
 // vectorcall
 // MAD
@@ -34,14 +35,21 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#ifndef ARCH_ARM64
 #include <pmmintrin.h>
+#endif
 #if _MSC_VER
 #include "SDL.h"
 #include <intrin.h>
 #else
 #include <stdalign.h>
 #include <SDL2/SDL.h>
+#ifdef ARCH_X64
 #include <x86intrin.h>
+#endif
+#ifdef ARCH_ARM64
+#include <arm_neon.h>
+#endif
 #endif
 
 const int WIDTH = 1920 / 2;
@@ -219,13 +227,13 @@ int main( int argc, char** argv )
             Matrix44 rotation;
             makeRotationXYZ( angleDeg, angleDeg, angleDeg, &rotation );
 
-            multiplySSE( &rotation, &meshLocalToWorld, &meshLocalToWorld );
+            multiplySIMD( &rotation, &meshLocalToWorld, &meshLocalToWorld );
         
             Matrix44 localToView;
-            multiplySSE( &meshLocalToWorld, &worldToView, &localToView );
+            multiplySIMD( &meshLocalToWorld, &worldToView, &localToView );
 
             Matrix44 localToClip;
-            multiplySSE( &localToView, &projMat, &localToClip );
+            multiplySIMD( &localToView, &projMat, &localToClip );
 
             angleDeg += 0.5f;
 
